@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
+import userRoutes from "./routes/users.js";
 
 // Constants
 const PORT = process.env.PORT || 8000;
@@ -37,6 +38,7 @@ app.use(cors());
 })();
 
 // Routes
+app.use("/api/users", userRoutes);
 app.use("/*", (_, res) => {
   res.status(501).send("Not Implemented.");
 });

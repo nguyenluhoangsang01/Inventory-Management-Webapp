@@ -4,13 +4,18 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 
+// Constants
 const PORT = process.env.PORT || 8000;
 
+// App
 const app = express();
 dotenv.config();
 
-app.use(cors());
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors());
 
 // Connect to DB and start server
 (async () => {
@@ -30,3 +35,8 @@ app.use(bodyParser.json());
       console.log(`⚡️[server]: Error connecting to database: ${err.message}`);
     });
 })();
+
+// Routes
+app.use("/*", (_, res) => {
+  res.status(501).send("Not Implemented.");
+});

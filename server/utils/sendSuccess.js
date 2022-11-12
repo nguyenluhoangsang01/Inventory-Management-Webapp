@@ -8,6 +8,6 @@ const sendSuccess = (res, message, data = null, statusCode = 200) => {
   if (data) resJson.data = data;
 
   return res.status(statusCode).json(resJson);
-};
+}; // Default statusCode is 200 OK, data is null
 
 export default sendSuccess;

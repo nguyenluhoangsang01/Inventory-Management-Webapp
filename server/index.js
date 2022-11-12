@@ -7,18 +7,18 @@ import mongoose from "mongoose";
 import userRoutes from "./routes/users.js";
 
 // Constants
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000; // Port
 
 // App
-const app = express();
-dotenv.config();
+const app = express(); // Create express app
+dotenv.config(); // Load environment variables from .env file
 
 // Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(cors());
+app.use(express.json()); // Parse JSON bodies
+app.use(cookieParser()); // Parse cookies
+app.use(express.urlencoded({ extended: false })); // Parse URL-encoded bodies
+app.use(bodyParser.json()); // Parse JSON bodies
+app.use(cors()); // Enable CORS
 
 // Connect to DB and start server
 (async () => {
@@ -26,21 +26,21 @@ app.use(cors());
     .connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    })
+    }) // Connect to MongoDB
     .then(() => {
       app.listen(PORT, () => {
         console.log(
           `⚡️[server]: Connected to the database. Server running on port ${PORT}`
         );
       });
-    })
+    }) // Start server
     .catch((err) => {
       console.log(`⚡️[server]: Error connecting to database: ${err.message}`);
-    });
+    }); // Catch error
 })();
 
 // Routes
-app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes); // Use user routes
 app.use("/*", (_, res) => {
-  res.status(501).send("Not Implemented.");
-});
+  res.status(501).send("Not Implemented."); // 501 Not Implemented
+}); // Catch all other routes

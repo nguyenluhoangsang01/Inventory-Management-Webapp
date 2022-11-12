@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { model, Schema } from "mongoose";
 
 // Validator with:
@@ -30,7 +31,6 @@ const userSchema = new Schema(
       required: [true, "Please enter a password"],
       trim: true,
       minlength: [6, "Minimum password length is 6 characters"],
-      maxLength: [20, "Maximum password length is 20 characters"],
     },
     photo: {
       type: String,
@@ -54,6 +54,18 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Encrypt password
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+
+  const saltRounds = 10;
+  const salt = bcrypt.genSaltSync(saltRounds);
+  this.password = bcrypt.hashSync(this.password, salt);
+  next();
+});
 
 const User = model("User", userSchema);
 export default User;

@@ -40,7 +40,7 @@ export const registerUser = async (req, res, next) => {
     await User.create({ ...req.body });
 
     // Send response
-    return sendSuccess(res, "User registered successfully", null, 201); // User registered successfully
+    return sendSuccess(res, "User registered successfully!", null, 201); // User registered successfully!
   } catch (err) {
     next(err); // 500 Internal Server Error
   }
@@ -68,28 +68,44 @@ export const loginUser = async (req, res, next) => {
     // Generate access token
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
-    }); // 1 day
+    });
 
     // Send HTTP-only cookie
-    res.cookie("accessToken", accessToken, {
+    res.cookie("access_token", accessToken, {
       httpOnly: true, // Only server can access the cookie
       secure: process.env.NODE_ENV === "production", // Cookie only works in HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cookie only works in the same site
       expires: new Date(Date.now() + 1000 * 86400), // 1 day
-    }); // 1 day
+    });
 
     // Get information of user except _id, password, and __v
     const { _id, password, __v, ...rest } = user._doc; // _doc is a property of mongoose document
 
     // Send response
-    return sendSuccess(res, "User logged in successfully", {
+    return sendSuccess(res, "User logged in successfully!", {
       accessToken, // Send access token
       user: {
         id: _id, // Change _id to id
         ...rest, // Add other information of user
       },
-    }); // User logged in successfully
+    }); // User logged in successfully!
   } catch (err) {
     next(err); // 500 Internal Server Error
   }
+};
+
+// @route GET api/users/logout
+// @desc Logout user
+// @access Private
+export const logoutUser = async (req, res, next) => {
+  // Clear cookie
+  res.cookie("access_token", null, {
+    httpOnly: true, // Only server can access the cookie
+    secure: process.env.NODE_ENV === "production", // Cookie only works in HTTPS
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cookie only works in the same site
+    expires: new Date(0),
+  });
+
+  // Send response
+  return sendSuccess(res, "User logged out successfully!"); // User logged out successfully!
 };

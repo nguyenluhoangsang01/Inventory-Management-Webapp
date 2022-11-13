@@ -71,7 +71,7 @@ export const loginUser = async (req, res, next) => {
     });
 
     // Send HTTP-only cookie
-    res.cookie("access_token", accessToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true, // Only server can access the cookie
       secure: process.env.NODE_ENV === "production", // Cookie only works in HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cookie only works in the same site
@@ -99,7 +99,7 @@ export const loginUser = async (req, res, next) => {
 // @access Private
 export const logoutUser = async (req, res, next) => {
   // Clear cookie
-  res.cookie("access_token", null, {
+  res.cookie("accessToken", null, {
     httpOnly: true, // Only server can access the cookie
     secure: process.env.NODE_ENV === "production", // Cookie only works in HTTPS
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cookie only works in the same site
@@ -128,6 +128,29 @@ export const getAllUsers = async (req, res, next) => {
         return { id: _id, ...rest }; // Change _id to id and add other information of user
       }),
     }); // Get all users successfully!
+  } catch (err) {
+    next(err); // 500 Internal Server Error
+  }
+};
+
+// @route GET api/users/profile
+// @desc Get user profile
+// @access Private
+export const getUserProfile = async (req, res, next) => {
+  const { id } = req.userId; // Get id from request
+
+  try {
+    // Get user
+    const user = await User.findById(id); // Find user by id
+    if (!user) return sendError(res, "User not found", 404); // User not found
+
+    // Get information of user except _id, password, and __v
+    const { _id, password, __v, ...rest } = user._doc; // _doc is a property of mongoose document
+
+    // Send response
+    return sendSuccess(res, "Get user profile successfully!", {
+      user: { id: _id, ...rest }, // Change _id to id and add other information of user
+    }); // Get user profile successfully!
   } catch (err) {
     next(err); // 500 Internal Server Error
   }

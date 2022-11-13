@@ -109,3 +109,26 @@ export const logoutUser = async (req, res, next) => {
   // Send response
   return sendSuccess(res, "User logged out successfully!"); // User logged out successfully!
 };
+
+// @route GET api/users
+// @desc Get all users
+// @access Private
+export const getAllUsers = async (req, res, next) => {
+  try {
+    // Get all users
+    const users = await User.find(); // Find all users
+    if (!users) return sendError(res, "Users not found", 404); // Users not found
+
+    // Send response
+    return sendSuccess(res, "Get all users successfully!", {
+      length: users.length, // Number of users
+      users: users.map((user) => {
+        const { _id, password, __v, ...rest } = user._doc; // _doc is a property of mongoose document
+
+        return { id: _id, ...rest }; // Change _id to id and add other information of user
+      }),
+    }); // Get all users successfully!
+  } catch (err) {
+    next(err); // 500 Internal Server Error
+  }
+};

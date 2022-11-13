@@ -2,13 +2,14 @@ import express from "express";
 import {
 	getAllUsers,
 	getUserProfile,
+	loginStatus,
 	loginUser,
 	logoutUser,
 	registerUser
 } from "../controllers/users.js";
 import { verifyToken } from "../middleWares/auth.js";
 
-const router = express.Router();
+const router = express.Router(); // Create a router
 
 // @route POST api/users/register
 // @desc Register user
@@ -34,5 +35,10 @@ router.get("/", verifyToken, getAllUsers);
 // @desc Get user profile
 // @access Private
 router.get("/profile", verifyToken, getUserProfile);
+
+// @route GET api/users/loggedIn
+// @desc Get login status
+// @access Public
+router.get("/loggedIn", loginStatus);
 
 export default router;

@@ -49,9 +49,7 @@ const userSchema = new Schema(
 
 // Encrypt password
 userSchema.pre("save", function (next) {
-  if (!this.isModified("password")) {
-    next(); // Skip if password is not modified
-  }
+  if (!this.isModified("password")) return next(); // Skip if password is not modified
 
   const saltRounds = 10; // Salt rounds
   const salt = bcrypt.genSaltSync(saltRounds); // Generate salt

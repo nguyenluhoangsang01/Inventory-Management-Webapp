@@ -179,3 +179,47 @@ export const loginStatus = async (req, res, next) => {
     }
   });
 };
+
+// @route PUT api/users/profile
+// @desc Update user profile
+// @access Private
+export const updateUserProfile = async (req, res, next) => {
+  const { id } = req.userId; // Get id from request
+  const { email, phone } = req.body;
+
+  // Validation
+  if (!email) return sendError(res, "Email is required"); // Email is required
+  if (!validator.isEmail(email)) return sendError(res, "Email is invalid"); // Email is invalid
+  if (!phone) return sendError(res, "Phone is required"); // Phone is required
+  if (!validator.isMobilePhone(phone, "vi-VN"))
+    return sendError(res, "Phone is invalid"); // Phone is invalid
+
+  try {
+    // Check if email or phone is already in use
+    const userExists = await User.findOne({
+      $or: [{ email }, { phone }],
+      _id: { $ne: id },
+    }); // Find user by email or phone and exclude the user itself
+    if (userExists)
+      return sendError(res, "Email or phone is already in use", 400); // Email or phone is already in use
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    ); // Find user by id and update user
+
+    // Get information of user except _id, password, and __v
+    const { _id, password, __v, ...rest } = updatedUser._doc; // _doc is a property of mongoose document
+
+    // Send response
+    return sendSuccess(res, "Update user profile successfully!", {
+      user: { id: _id, ...rest }, // Change _id to id and add other information of user
+    }); // Update user profile successfully!
+  } catch (err) {
+    next(err); // 500 Internal Server Error
+  }
+};

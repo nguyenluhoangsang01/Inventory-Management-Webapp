@@ -223,3 +223,52 @@ export const updateUserProfile = async (req, res, next) => {
     next(err); // 500 Internal Server Error
   }
 };
+
+// @route PUT api/users/changePassword
+// @desc Change password
+// @access Private
+export const updatePassword = async (req, res, next) => {
+  const { email, phone, oldPassword, newPassword, repeatNewPassword } =
+    req.body; // Get email, phone, and password from request
+
+  // Validation
+  if (!email && !phone) return sendError(res, "Email or phone is required"); // Email or phone is required
+  if (!oldPassword) return sendError(res, "Old password is required"); // Old password is required
+  if (!newPassword) return sendError(res, "New password is required"); // New password is required
+  if (newPassword.length < 6)
+    return sendError(res, "Minimum password length is 6 characters"); // Minimum password length is 6 characters
+  if (newPassword.length > 20)
+    return sendError(res, "Maximum password length is 20 characters"); // Maximum password length is 20 characters
+  if (!repeatNewPassword)
+    return sendError(res, "Repeat new password is required"); // Repeat new password is required
+  if (newPassword !== repeatNewPassword)
+    return sendError(res, "New password and repeat new password do not match"); // New password and repeat new password do not match
+
+  try {
+    // Check if user exists
+    const user = await User.findOne({ $or: [{ email }, { phone }] }); // Find user by email or phone
+    if (!user) return sendError(res, "User does not exist", 404); // User does not exist
+
+    // Check if old password is correct
+    const isMatch = bcrypt.compareSync(oldPassword, user.password); // Compare old password with password in database
+    if (!isMatch) return sendError(res, "Old password is incorrect", 400); // Old password is incorrect
+
+    // Generate salt
+    const saltRounds = 10; // Salt rounds
+    const salt = bcrypt.genSaltSync(saltRounds); // Generate salt
+
+    // Update password
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        $set: { password: bcrypt.hashSync(newPassword, salt) },
+      },
+      { new: true }
+    ); // Find user by id and update password
+
+    // Send response
+    return sendSuccess(res, "Change password successfully!"); // Change password successfully!
+  } catch (err) {
+    next(err);
+  }
+};

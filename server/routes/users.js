@@ -1,9 +1,10 @@
 import express from "express";
 import {
-  getAllUsers,
-  loginUser,
-  logoutUser,
-  registerUser,
+	getAllUsers,
+	getUserProfile,
+	loginUser,
+	logoutUser,
+	registerUser
 } from "../controllers/users.js";
 import { verifyToken } from "../middleWares/auth.js";
 
@@ -28,5 +29,10 @@ router.get("/logout", verifyToken, logoutUser);
 // @desc Get all users
 // @access Private
 router.get("/", verifyToken, getAllUsers);
+
+// @route GET api/users/profile
+// @desc Get user profile
+// @access Private
+router.get("/profile", verifyToken, getUserProfile);
 
 export default router;

@@ -103,7 +103,7 @@ export const logoutUser = async (req, res, next) => {
     httpOnly: true, // Only server can access the cookie
     secure: process.env.NODE_ENV === "production", // Cookie only works in HTTPS
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cookie only works in the same site
-    expires: new Date(0),
+    expires: new Date(0), // Expire the cookie immediately
   });
 
   // Send response
@@ -154,4 +154,28 @@ export const getUserProfile = async (req, res, next) => {
   } catch (err) {
     next(err); // 500 Internal Server Error
   }
+};
+
+// @route GET api/users/loggedIn
+// @desc Get login status
+// @access Public
+export const loginStatus = async (req, res, next) => {
+  const accessToken = req.cookies.accessToken; // Get access token from cookie
+
+  if (!accessToken) {
+    return res.json({ isLoggedIn: false }); // User is not logged in
+  }
+
+  jwt.verify(accessToken, process.env.JWT_SECRET, function (err, decoded) {
+    if (err)
+      return sendError(
+        res,
+        "Access token has expired or is otherwise invalid",
+        498
+      ); // if accessToken is invalid or expired, return error
+
+    if (decoded) {
+      return res.json({ isLoggedIn: true }); // User is logged in
+    }
+  });
 };

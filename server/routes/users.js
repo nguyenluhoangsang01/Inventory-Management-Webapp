@@ -6,6 +6,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updatePassword,
   updateUserProfile,
 } from "../controllers/users.js";
 import { verifyToken } from "../middleWares/auth.js";
@@ -46,5 +47,10 @@ router.get("/loggedIn", loginStatus);
 // @desc Update user profile
 // @access Private
 router.put("/profile", verifyToken, updateUserProfile);
+
+// @route PUT api/users/changePassword
+// @desc Change password
+// @access Private
+router.put("/changePassword", verifyToken, updatePassword);
 
 export default router;

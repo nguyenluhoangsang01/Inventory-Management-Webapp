@@ -1,11 +1,12 @@
 import express from "express";
 import {
-	getAllUsers,
-	getUserProfile,
-	loginStatus,
-	loginUser,
-	logoutUser,
-	registerUser
+  getAllUsers,
+  getUserProfile,
+  loginStatus,
+  loginUser,
+  logoutUser,
+  registerUser,
+  updateUserProfile,
 } from "../controllers/users.js";
 import { verifyToken } from "../middleWares/auth.js";
 
@@ -40,5 +41,10 @@ router.get("/profile", verifyToken, getUserProfile);
 // @desc Get login status
 // @access Public
 router.get("/loggedIn", loginStatus);
+
+// @route PUT api/users/profile
+// @desc Update user profile
+// @access Private
+router.put("/profile", verifyToken, updateUserProfile);
 
 export default router;

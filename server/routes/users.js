@@ -60,9 +60,9 @@ router.put("/changePassword", verifyToken, updatePassword);
 // @access Public
 router.post("/forgotPassword", forgotPassword);
 
-// @route PUT api/users/resetPassword/:token
+// @route PUT api/users/resetPassword/:resetToken
 // @desc Reset password
 // @access Public
-router.put("/resetPassword/:token", resetPassword);
+router.put("/resetPassword/:resetToken", resetPassword);
 
 export default router;

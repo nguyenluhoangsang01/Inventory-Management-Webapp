@@ -1,14 +1,15 @@
 import express from "express";
 import {
-	forgotPassword,
-	getAllUsers,
-	getUserProfile,
-	loginStatus,
-	loginUser,
-	logoutUser,
-	registerUser,
-	updatePassword,
-	updateUserProfile
+  forgotPassword,
+  getAllUsers,
+  getUserProfile,
+  loginStatus,
+  loginUser,
+  logoutUser,
+  registerUser,
+  resetPassword,
+  updatePassword,
+  updateUserProfile,
 } from "../controllers/users.js";
 import { verifyToken } from "../middleWares/auth.js";
 
@@ -58,5 +59,10 @@ router.put("/changePassword", verifyToken, updatePassword);
 // @desc Forgot password
 // @access Public
 router.post("/forgotPassword", forgotPassword);
+
+// @route PUT api/users/resetPassword/:token
+// @desc Reset password
+// @access Public
+router.put("/resetPassword/:token", resetPassword);
 
 export default router;

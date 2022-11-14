@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const sendEmail = async (subject, message, sendTo, sendFrom, replyTo) => {
+const sendEmail = async ({ subject, message, sendTo }) => {
   // Create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
     service: process.env.MAIL_SERVICE, // true for 465, false for other ports
@@ -16,11 +16,10 @@ const sendEmail = async (subject, message, sendTo, sendFrom, replyTo) => {
 
   // Send mail with defined transport object
   const mailOptions = {
-    from: sendFrom, // sender address
-    to: sendTo, // list of receivers
-    replyTo, // reply to address
     subject, // Subject line
     html: message, // html body
+    from: process.env.MAIL_USERNAME, // sender address
+    to: sendTo, // list of receivers
   };
 
   // Send email

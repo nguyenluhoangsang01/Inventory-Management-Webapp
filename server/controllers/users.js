@@ -262,17 +262,17 @@ export const updatePassword = async (req, res, next) => {
 
     // Update password
     await User.findByIdAndUpdate(
-      user._id,
+      user._id, // Find user by id
       {
-        $set: { password: bcrypt.hashSync(newPassword, salt) },
+        $set: { password: bcrypt.hashSync(newPassword, salt) }, // Hash new password and update password
       },
-      { new: true }
+      { new: true } // Return updated user
     ); // Find user by id and update password
 
     // Send response
     return sendSuccess(res, "Change password successfully!"); // Change password successfully!
   } catch (err) {
-    next(err);
+    next(err); // 500 Internal Server Error
   }
 };
 
@@ -289,7 +289,7 @@ export const forgotPassword = async (req, res, next) => {
     if (!user) return sendError(res, "User does not exist", 404); // User does not exist
 
     const token = await Token.findOne({ userId: user._id }); // Find token by userId
-		if (token) await token.deleteOne(); // Delete token if it exists
+    if (token) await token.deleteOne(); // Delete token if it exists
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex") + user._id; // Generate reset token
@@ -315,7 +315,7 @@ export const forgotPassword = async (req, res, next) => {
         : [
             `https://${process.env.CLIENT_URL}/reset-password/${resetToken}`,
             `http://${process.env.CLIENT_URL}/reset-password/${resetToken}`,
-          ];
+          ]; // If in development mode, use localhost, otherwise use client url
 
     // Send email
     try {
@@ -336,16 +336,76 @@ export const forgotPassword = async (req, res, next) => {
 					<p>231/72, Duong Dinh Hoi, Tang Nhon Phu B, Thanh pho Thu Duc, Ho Chi Minh</p>
 				`,
         sendTo: user.email,
-      });
+      }); // Send email
 
       return sendSuccess(
         res,
         `Reset password link has been sent to ${user.email}`
       ); // Reset password link has been sent to your email
     } catch (error) {
-      return sendError(res, "Error not sent, please try again", 500);
+      return sendError(res, "Error not sent, please try again", 500); // Error not sent, please try again
     }
   } catch (err) {
-    next(err);
+    next(err); // 500 Internal Server Error
+  }
+};
+
+// @route PUT api/users/resetPassword/:token
+// @desc Reset password
+// @access Public
+export const resetPassword = async (req, res, next) => {
+  const { resetToken } = req.params; // Get reset token from request
+  const { newPassword, repeatNewPassword } = req.body; // Get new password and repeat new password from request
+
+  try {
+    // Hash reset token before saving to database
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex"); // Hash reset token
+
+    const token = await Token.findOne({
+      token: hashedResetToken, // Find token by hashed reset token
+      expiresAt: { $gt: Date.now() }, // Token is not expired
+    }); // Find token by token
+    if (!token) return sendError(res, "Token is invalid or has expired", 404); // Token is invalid or has expired
+
+    const user = await User.findById(token.userId); // Find user by id
+    if (!user) return sendError(res, "User does not exist", 404); // User does not exist
+
+    // Validation
+    if (!newPassword) return sendError(res, "New password is required"); // New password is required
+    if (newPassword.length < 6)
+      return sendError(res, "Minimum password length is 6 characters"); // Minimum password length is 6 characters
+    if (newPassword.length > 20)
+      return sendError(res, "Maximum password length is 20 characters"); // Maximum password length is 20 characters
+    if (!repeatNewPassword)
+      return sendError(res, "Repeat new password is required"); // Repeat new password is required
+    if (newPassword !== repeatNewPassword)
+      return sendError(
+        res,
+        "New password and repeat new password do not match"
+      ); // New password and repeat new password do not match
+
+    // Generate salt
+    const saltRounds = 10; // Salt rounds
+    const salt = bcrypt.genSaltSync(saltRounds); // Generate salt
+
+    // Update password
+    await User.findByIdAndUpdate(
+      user._id, // Find user by id
+      {
+        $set: { password: bcrypt.hashSync(newPassword, salt) }, // Update password
+      },
+      { new: true } // Return new user
+    ); // Find user by id and update password
+
+    // Delete token
+    await token.deleteOne(); // Delete token
+
+    // Send response
+    return sendSuccess(res, "Reset password successfully!"); // Reset password successfully!
+  } catch (err) {
+    next(err); // Next error
   }
 };

@@ -1,7 +1,10 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import validator from "validator";
+import Token from "../models/Token.js";
 import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";
 import sendError from "../utils/sendError.js";
 import sendSuccess from "../utils/sendSuccess.js";
 
@@ -268,6 +271,80 @@ export const updatePassword = async (req, res, next) => {
 
     // Send response
     return sendSuccess(res, "Change password successfully!"); // Change password successfully!
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route POST api/users/forgotPassword
+// @desc Forgot password
+// @access Public
+export const forgotPassword = async (req, res, next) => {
+  const { email } = req.body; // Get email from request
+
+  if (!email) return sendError(res, "Email is required"); // Email is required
+
+  try {
+    const user = await User.findOne({ email }); // Find user by email
+    if (!user) return sendError(res, "User does not exist", 404); // User does not exist
+
+    const token = await Token.findOne({ userId: user._id }); // Find token by userId
+		if (token) await token.deleteOne(); // Delete token if it exists
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex") + user._id; // Generate reset token
+
+    // Hash reset token before saving to database
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    // Save reset token to database
+    await Token.create({
+      userId: user._id,
+      token: hashedResetToken,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 1000 * 60 * 10, // 10 minutes
+    });
+
+    // Construct reset password link
+    const resetPasswordLink =
+      process.env.NODE_ENV === "development"
+        ? `http://localhost:3000/reset-password/${resetToken}`
+        : [
+            `https://${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+            `http://${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+          ];
+
+    // Send email
+    try {
+      await sendEmail({
+        subject: "Reset Password Request",
+        message: `
+					<p>Dear <b>${user.name}</b>,</p>
+					<br />
+					<p>Please use the url below to reset your password.</p>
+					<p>Reset password link: ${resetPasswordLink}</p>
+					<p style="color: #F00;">This reset link is valid for only 10 minutes.</p>
+					<br />
+					<p>If you have any concerns/ questions, please don't hesitate to get back to us.</p>
+					<br />
+					<p>Thanks and Best regards,</p>
+					<p>Nguyen Lu Hoang Sang</p>
+					<p>0776689228</p>
+					<p>231/72, Duong Dinh Hoi, Tang Nhon Phu B, Thanh pho Thu Duc, Ho Chi Minh</p>
+				`,
+        sendTo: user.email,
+      });
+
+      return sendSuccess(
+        res,
+        `Reset password link has been sent to ${user.email}`
+      ); // Reset password link has been sent to your email
+    } catch (error) {
+      return sendError(res, "Error not sent, please try again", 500);
+    }
   } catch (err) {
     next(err);
   }

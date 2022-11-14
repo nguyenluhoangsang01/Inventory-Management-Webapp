@@ -12,8 +12,11 @@ const tokenSchema = new Schema({
   }, // User id is required and reference to User model
   createdAt: {
     type: Date,
-    default: Date.now,
-    expires: 86400, // Token expires in 24 hours
+    required: true,
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
   },
 }); // Create schema
 

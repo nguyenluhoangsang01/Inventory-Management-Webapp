@@ -15,3 +15,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+@layer base {
+  svg {
+    @apply w-6 h-6 cursor-pointer hover:scale-110 active:scale-100 transition;
+  }
+}

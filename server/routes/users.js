@@ -33,7 +33,7 @@ router.get("/logout", verifyToken, logoutUser);
 // @route GET api/users
 // @desc Get all users
 // @access Private
-router.get("/", verifyToken, getAllUsers);
+router.get("/", getAllUsers);
 
 // @route GET api/users/profile
 // @desc Get user profile

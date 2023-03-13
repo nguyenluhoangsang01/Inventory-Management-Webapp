@@ -119,7 +119,7 @@ export const logoutUser = async (req, res, next) => {
 export const getAllUsers = async (req, res, next) => {
   try {
     // Get all users
-    const users = await User.find(); // Find all users
+    const users = await User.find().exec(); // Find all users
     if (!users) return sendError(res, "Users not found", 404); // Users not found
 
     // Send response
